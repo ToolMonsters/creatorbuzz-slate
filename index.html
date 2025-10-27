@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slate Campaign Analytics Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --yellow: #F8CE43;
+      --yellow-light: #FFDE5B;
+      --black: #000000;
+      --dark-gray: #1a1a1a;
+      --gray: #666666;
+      --light-gray: #f5f5f5;
+      --white: #FFFFFF;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #F59E0B;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--white);
+      color: var(--black);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: #000000;
+      padding: 2.5rem 0;
+      border-bottom: 4px solid var(--yellow);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .logo-img {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-section h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-section h1 span {
+      color: var(--yellow);
+    }
+
+    .logo-section p {
+      font-size: 1.125rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* KPI Section */
+    .kpi-section {
+      background: var(--light-gray);
+      padding: 3rem 0;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+    }
+
+    .kpi-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--yellow);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .kpi-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .kpi-value {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--black);
+      display: block;
+      line-height: 1;
+    }
+
+    .kpi-label {
+      font-size: 0.875rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.75rem;
+      font-weight: 600;
+    }
+
+    .kpi-subtext {
+      font-size: 0.875rem;
+      color: var(--gray);
+      margin-top: 0.5rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 4rem 0;
+      background: var(--white);
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 2rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--yellow);
+      display: inline-block;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .dashboard-grid.three-col {
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 2rem;
+      height: 100%;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--white);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #E2E8F0;
+      color: var(--dark-gray);
+    }
+
+    tbody tr:hover {
+      background: var(--light-gray);
+    }
+
+    .badge {
+      background: var(--yellow);
+      color: var(--black);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge.interest {
+      background: var(--success);
+    }
+
+    .badge.criticism {
+      background: var(--warning);
+    }
+
+    .badge.feature {
+      background: var(--yellow-light);
+    }
+
+    /* Progress Bars */
+    .progress-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .progress-item {
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .progress-label {
+      font-weight: 600;
+      color: var(--black);
+    }
+
+    .progress-value {
+      font-weight: 700;
+      color: var(--black);
+      background: var(--yellow);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--light-gray);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--black);
+      border-radius: 4px;
+      transition: width 1.5s ease-out;
+    }
+
+    /* Feature Lists */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .feature-item {
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: var(--light-gray);
+      border-left: 4px solid var(--yellow);
+      border-radius: 6px;
+      color: var(--dark-gray);
+    }
+
+    .feature-item.highlight {
+      border-left-color: var(--success);
+      background: #F0FDF4;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      height: 300px;
+      margin-top: 1rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+      background: var(--light-gray);
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--black);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+    }
+
+    /* Section Divider */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
+      margin: 4rem 0;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--black);
+      color: var(--white);
+      padding: 2rem 0;
+      text-align: center;
+      border-top: 4px solid var(--yellow);
+      margin-top: 4rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .logo-section {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .logo-img {
+        height: 50px;
+      }
+
+      .logo-section h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="https://cdn.prod.website-files.com/66e06b42dc7f8b0e4bfa8e40/66e06c014eed894f36f88e0e_slate-logo.svg" alt="Slate Logo" class="logo-img">
+          <div class="logo-text">
+            <h1>Campaign <span>Analytics</span></h1>
+            <p>LinkedIn Comments & Reactions Analysis Dashboard</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Section -->
+  <section class="kpi-section">
+    <div class="container">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-value">774</span>
+          <span class="kpi-label">Total Comments</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">551</span>
+          <span class="kpi-label">Unique Commenters</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">490</span>
+          <span class="kpi-label">Companies Represented</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">38.6%</span>
+          <span class="kpi-label">Engagement Rate</span>
+          <span class="kpi-subtext">Interest + Criticism + Feature</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Feedback Analysis -->
+      <h2 class="section-title">Feedback Type Distribution</h2>
+      
+      <div class="dashboard-grid">
+        <!-- Feedback Distribution Chart -->
+        <div class="card">
+          <h3 class="card-title">Comment Feedback Types</h3>
+          <div class="chart-container">
+            <canvas id="feedbackChart"></canvas>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">241</div>
+              <div class="stat-label">Interest</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">42</div>
+              <div class="stat-label">Criticism</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">16</div>
+              <div class="stat-label">Feature</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">475</div>
+              <div class="stat-label">None Listed</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geographic Distribution -->
+        <div class="card">
+          <h3 class="card-title">Geographic Distribution</h3>
+          <div class="chart-container">
+            <canvas id="geoChart"></canvas>
+          </div>
+          <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem; text-align: center;">
+            Based on 619 comments with location data
+          </p>
+        </div>
+      </div>
+
+      <!-- Top Engaged Users -->
+      <div class="card">
+        <h3 class="card-title">Most Active Commenters</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Comments</th>
+                <th>Primary Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ifeoluwa Akinyemi 🐝</strong></td>
+                <td>Creatorbuzz</td>
+                <td>Campaign Assistant</td>
+                <td><strong>7</strong></td>
+                <td><span class="badge interest">Interest</span></td>
+              </tr>
+              <tr>
+                <td><strong>Christina Pearo</strong></td>
+                <td>Slate</td>
+                <td>Content Manager</td>
+                <td><strong>5</strong></td>
+                <td><span class="badge">Mixed</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nicolas Palermo</strong></td>
+                <td>Ditto AI</td>
+                <td>Social Media Strategist</td>
+                <td><strong>4</strong></td>
+                <td><span class="badge">Mixed</span></td>
+              </tr>
+              <tr>
+                <td><strong>Mya Shell</strong></td>
+                <td>Quill</td>
+                <td>Social Media Manager</td>
+                <td><strong>3</strong></td>
+                <td><span class="badge interest">Interest</span></td>
+              </tr>
+              <tr>
+                <td><strong>Aastha Duggal</strong></td>
+                <td>Dharamsala Animal Rescue</td>
+                <td>Social Media Manager</td>
+                <td><strong>3</strong></td>
+                <td><span class="badge criticism">Criticism</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem;">
+          Total: 97 users commented multiple times
+        </p>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Demographics -->
+      <h2 class="section-title">Company Demographics</h2>
+      
+      <div class="dashboard-grid three-col">
+        <!-- Company Size -->
+        <div class="card">
+          <h3 class="card-title">Company Size Distribution</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">11-50</span>
+                <span class="progress-value">24.2%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 24.2%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">2-10</span>
+                <span class="progress-value">23.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 23.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">51-200</span>
+                <span class="progress-value">16.6%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 16.6%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">0-1</span>
+                <span class="progress-value">14.3%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 14.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">1001-5000</span>
+                <span class="progress-value">8.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 8.4%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Industries -->
+        <div class="card">
+          <h3 class="card-title">Top Industries</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Marketing & Advertising</span>
+                <span class="progress-value">26.1%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 26.1%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Computer Software</span>
+                <span class="progress-value">21.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 21.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">IT Services</span>
+                <span class="progress-value">4.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 4.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Non-profit</span>
+                <span class="progress-value">4.4%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 4.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Financial Services</span>
+                <span class="progress-value">3.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 3.8%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Job Seniority -->
+        <div class="card">
+          <h3 class="card-title">Seniority Levels</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Manager</span>
+                <span class="progress-value">33.3%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 33.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">C-Level/Founder</span>
+                <span class="progress-value">32.8%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 32.8%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Mid-Level</span>
+                <span class="progress-value">22.7%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 22.7%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Junior</span>
+                <span class="progress-value">5.0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 5.0%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Senior</span>
+                <span class="progress-value">3.6%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 3.6%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Key Insights -->
+      <h2 class="section-title">Campaign Insights</h2>
+      
+      <div class="dashboard-grid">
+        <!-- What Users Love -->
+        <div class="card">
+          <h3 class="card-title">What Users Are Interested In (241 comments)</h3>
+          <ul class="feature-list">
+            <li class="feature-item highlight">Brand consistency without sacrificing creativity</li>
+            <li class="feature-item highlight">Pre-made assets ready for conferences</li>
+            <li class="feature-item highlight">Team-wide brand guideline enforcement</li>
+            <li class="feature-item highlight">Native-looking content that doesn't look like ads</li>
+            <li class="feature-item highlight">Simplified video editing for social media managers</li>
+          </ul>
+        </div>
+
+        <!-- Concerns Raised -->
+        <div class="card">
+          <h3 class="card-title">Concerns & Criticisms (42 comments)</h3>
+          <ul class="feature-list">
+            <li class="feature-item">3.5 billion reels daily is overwhelming</li>
+            <li class="feature-item">Approval processes take too long</li>
+            <li class="feature-item">Need brand guidelines before tool adoption</li>
+            <li class="feature-item">Ads are recognized in first 3 seconds</li>
+            <li class="feature-item">Maintaining authenticity vs being "salesy"</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Feature Requests -->
+      <div class="card">
+        <h3 class="card-title">Feature Requests (16 comments)</h3>
+        <ul class="feature-list">
+          <li class="feature-item">Multi-language account support</li>
+          <li class="feature-item">Conference content preparation tools</li>
+          <li class="feature-item">Team collaboration features</li>
+          <li class="feature-item">Workflow integration capabilities</li>
+        </ul>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Summary Stats -->
+      <h2 class="section-title">Summary Statistics</h2>
+      
+      <div class="card">
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-item">
+            <div class="stat-value">78.1%</div>
+            <div class="stat-label">US + UK Comments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">66.1%</div>
+            <div class="stat-label">Manager Level or Above</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">47.8%</div>
+            <div class="stat-label">Marketing/Software Industries</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">62.2%</div>
+            <div class="stat-label">Companies < 200 Employees</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">97</div>
+            <div class="stat-label">Repeat Commenters</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">299</div>
+            <div class="stat-label">Engaged Comments (I+C+F)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Reactions Section -->
+      <h2 class="section-title">Reactions Analysis</h2>
+      
+      <!-- Important Note -->
+      <div class="card" style="background: #FEF3C7; border: 2px solid var(--yellow); margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span style="font-size: 2rem;">⚠️</span>
+          <div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--black);">Sample Data - Not Complete Campaign</h4>
+            <p style="margin: 0; color: var(--dark-gray);">
+              This reactions data represents a <strong>sample of 22 posts</strong> from the campaign, not the entire campaign. 
+              The actual number of reactions is higher than shown here. These metrics provide directional insights based on the analyzed sample.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reactions KPIs -->
+      <div class="kpi-grid" style="margin-bottom: 3rem;">
+        <div class="kpi-card">
+          <span class="kpi-value">1,648</span>
+          <span class="kpi-label">Sample Reactions</span>
+          <span class="kpi-subtext">From 22 posts only</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">1,187</span>
+          <span class="kpi-label">Unique Reactors</span>
+          <span class="kpi-subtext">In this sample</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">1,026</span>
+          <span class="kpi-label">Companies Engaged</span>
+          <span class="kpi-subtext">Partial data</span>
+        </div>
+        
+        <div class="kpi-card">
+          <span class="kpi-value">~75/post</span>
+          <span class="kpi-label">Avg Reactions</span>
+          <span class="kpi-subtext">1,648 ÷ 22 posts</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Reaction Types Distribution -->
+        <div class="card">
+          <h3 class="card-title">Reaction Types Distribution (Sample)</h3>
+          <div class="chart-container">
+            <canvas id="reactionTypesChart"></canvas>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">1,090</div>
+              <div class="stat-label">Likes</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">345</div>
+              <div class="stat-label">Empathy</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">143</div>
+              <div class="stat-label">Praise</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">70</div>
+              <div class="stat-label">Other</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geographic Distribution Reactions -->
+        <div class="card">
+          <h3 class="card-title">Geographic Distribution - Reactions (Sample)</h3>
+          <div class="chart-container">
+            <canvas id="geoReactionsChart"></canvas>
+          </div>
+          <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem; text-align: center;">
+            Based on 1,407 reactions with location data from 22 posts sample
+          </p>
+        </div>
+      </div>
+
+      <!-- Top Reactors Table -->
+      <div class="card">
+        <h3 class="card-title">Most Active Reactors (22 Posts Sample)</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Reactions</th>
+                <th>Primary Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Slate</strong></td>
+                <td>Slate</td>
+                <td>Company Account</td>
+                <td><strong>20</strong></td>
+                <td><span class="badge">Mixed</span></td>
+              </tr>
+              <tr>
+                <td><strong>Kunal Patel</strong></td>
+                <td>Various</td>
+                <td>Marketing Professional</td>
+                <td><strong>17</strong></td>
+                <td><span class="badge">Like</span></td>
+              </tr>
+              <tr>
+                <td><strong>Ifeoluwa Akinyemi 🐝</strong></td>
+                <td>Creatorbuzz</td>
+                <td>Campaign Assistant</td>
+                <td><strong>15</strong></td>
+                <td><span class="badge">Empathy</span></td>
+              </tr>
+              <tr>
+                <td><strong>Eric Stark</strong></td>
+                <td>Various</td>
+                <td>Social Media Manager</td>
+                <td><strong>15</strong></td>
+                <td><span class="badge">Like</span></td>
+              </tr>
+              <tr>
+                <td><strong>Vin Matano 🐝</strong></td>
+                <td>Various</td>
+                <td>Content Creator</td>
+                <td><strong>15</strong></td>
+                <td><span class="badge">Mixed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--gray); margin-top: 1rem; font-style: italic;">
+          Note: These numbers reflect engagement on the sampled 22 posts only. Full campaign metrics would be significantly higher.
+        </p>
+      </div>
+
+      <div class="dashboard-grid" style="margin-top: 2rem;">
+        <!-- Company Size - Reactions -->
+        <div class="card">
+          <h3 class="card-title">Company Size - Reactions Sample</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">11-50</span>
+                <span class="progress-value">347</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 21.1%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">51-200</span>
+                <span class="progress-value">250</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 15.2%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">2-10</span>
+                <span class="progress-value">241</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 14.6%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">10001+</span>
+                <span class="progress-value">147</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 8.9%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">1001-5000</span>
+                <span class="progress-value">145</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 8.8%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Industries - Reactions -->
+        <div class="card">
+          <h3 class="card-title">Top Industries - Reactions Sample</h3>
+          <ul class="progress-list">
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Computer Software</span>
+                <span class="progress-value">399</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 24.2%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Marketing & Advertising</span>
+                <span class="progress-value">281</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 17.1%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Financial Services</span>
+                <span class="progress-value">56</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 3.4%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">IT Services</span>
+                <span class="progress-value">55</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 3.3%"></div>
+              </div>
+            </li>
+            <li class="progress-item">
+              <div class="progress-header">
+                <span class="progress-label">Higher Education</span>
+                <span class="progress-value">53</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 3.2%"></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Combined Insights -->
+      <h2 class="section-title">Combined Campaign Performance</h2>
+      
+      <div class="card">
+        <h3 class="card-title">Total Engagement Metrics</h3>
+        <p style="font-size: 0.875rem; color: var(--gray); margin-bottom: 1.5rem; padding: 1rem; background: #FEF3C7; border-radius: 6px;">
+          <strong>⚠️ Note:</strong> Reactions data is from a 22-post sample only. Comments data represents the full dataset. 
+          Actual total engagement would be significantly higher with complete reaction data.
+        </p>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-item">
+            <div class="stat-value">2,422</div>
+            <div class="stat-label">Engagements (Partial)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">774</div>
+            <div class="stat-label">Total Comments</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1,648</div>
+            <div class="stat-label">Sample Reactions</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">~75</div>
+            <div class="stat-label">Avg Reactions/Post</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">80.6%</div>
+            <div class="stat-label">Interest (Comments)</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">66.1%</div>
+            <div class="stat-label">Likes (Reactions)</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2024 Slate Campaign Analytics Dashboard</p>
+    </div>
+  </footer>
+
+  <script>
+    // Chart configuration
+    Chart.defaults.font.family = 'Inter, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#64748B';
+
+    // Feedback Distribution Chart
+    const feedbackCtx = document.getElementById('feedbackChart').getContext('2d');
+    new Chart(feedbackCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Interest (80.6%)', 'Criticism (14.0%)', 'Feature (5.4%)'],
+        datasets: [{
+          data: [241, 42, 16],
+          backgroundColor: ['#F8CE43', '#666666', '#FFDE5B'],
+          borderColor: '#FFFFFF',
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              padding: 15,
+              font: {
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' comments';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Geographic Distribution Chart  
+    const geoCtx = document.getElementById('geoChart').getContext('2d');
+    new Chart(geoCtx, {
+      type: 'bar',
+      data: {
+        labels: ['United States', 'United Kingdom', 'Nigeria', 'Canada', 'India'],
+        datasets: [{
+          data: [402, 82, 37, 26, 10],
+          backgroundColor: '#F8CE43',
+          borderColor: '#000000',
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' comments';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+
+    // Animate progress bars on scroll
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const progressObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const progressBars = entry.target.querySelectorAll('.progress-fill');
+          progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+              bar.style.width = width;
+            }, 100);
+          });
+          progressObserver.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.progress-list').forEach(list => {
+      progressObserver.observe(list);
+    });
+
+    // Reaction Types Chart
+    const reactionTypesCtx = document.getElementById('reactionTypesChart').getContext('2d');
+    new Chart(reactionTypesCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Like (66.1%)', 'Empathy (20.9%)', 'Praise (8.7%)', 'Interest (2.2%)', 'Other (2.1%)'],
+        datasets: [{
+          data: [1090, 345, 143, 36, 34],
+          backgroundColor: ['#F8CE43', '#FFDE5B', '#FFE574', '#1a1a1a', '#666666'],
+          borderColor: '#FFFFFF',
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              padding: 15,
+              font: {
+                size: 11
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' reactions';
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Geographic Distribution Chart - Reactions
+    const geoReactionsCtx = document.getElementById('geoReactionsChart').getContext('2d');
+    new Chart(geoReactionsCtx, {
+      type: 'bar',
+      data: {
+        labels: ['United States', 'United Kingdom', 'Canada', 'Nigeria', 'India'],
+        datasets: [{
+          data: [866, 147, 62, 58, 46],
+          backgroundColor: '#000000',
+          borderColor: '#F8CE43',
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            callbacks: {
+              label: function(context) {
+                return context.raw + ' reactions';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.05)'
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
